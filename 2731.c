@@ -35,8 +35,10 @@ void printPath(int arr[],int target){
 
   printf("%d ",target+1);
   while(loop>0){
-    printf("%d ",arr[loop]+1);
+    printf("%d",arr[loop]+1);
     loop = arr[loop];
+    if(loop>0)
+      putchar(' ');
   }
   putchar('\n');
 }
