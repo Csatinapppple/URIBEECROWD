@@ -1,101 +1,113 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdbool.h>
+#include <limits.h>
+#include <stdlib.h>
+
 #define TIME_LIMIT 120
-#define CITYSIZE 15
+#define CITY_SIZE 15
+
 typedef struct{
   int c1,c2,time;
 }Road;
+
 typedef struct{
-  int elapsedTime,path[CITYSIZE],pathSize;
+  int elapsedTime,path[CITY_SIZE],target;
 }Result;
-void resetGraph(int graphMap[][CITYSIZE]){
-  for (int i = 0; i < CITYSIZE; i++){
-    for (int j = 0; j < CITYSIZE; j++){
+
+typedef enum{
+  UNDEFINED=false,
+  DEFINED=true,
+  INFINITY=INT_MAX,
+}State;
+
+void resetGraph(int graphMap[][CITY_SIZE],int vertices){
+  for (int i = 0; i < vertices; i++)
+    for (int j = 0; j < vertices; j++)
       graphMap[i][j]^=graphMap[i][j];
-    }
-  }
 }
-void fillGraph(int graphMap[][CITYSIZE],Road road){
+void fillGraph(int graphMap[][CITY_SIZE],Road road){
   graphMap[road.c1-1][road.c2-1] = road.time;
   graphMap[road.c2-1][road.c1-1] = road.time;
 }
-void printGraph(int graphMap[][CITYSIZE]){
-  for (int i = 0; i < CITYSIZE; i++){
-    for (int j = 0; j < CITYSIZE; j++){
-        printf("%u ", graphMap[i][j]);
-    }
-    printf("\n");
+
+void printPath(int arr[],int target){
+  int loop = target;
+
+  printf("%d ",target+1);
+  while(loop>0){
+    printf("%d ",arr[loop]+1);
+    loop = arr[loop];
   }
-}
-void printPath(int array[CITYSIZE],int arrLen){
-  for(int x=0;x<arrLen;x++)
-    printf("%u ",array[x]);
   putchar('\n');
 }
-bool includes(int array[],int value){
-  for(int x=0;array[x]!=0;x++){
-    if(value==array[x])
-      return true;
-  }
-  return false;
+
+int minDistance(int dist[],int prev[],int vertices){
+  int min=INFINITY,minIndex;
+  
+  for(int i=0;i<vertices;i++)
+    if(!prev[i] && dist[i] < min)
+      min = dist[i],minIndex=i;
+  
+  return minIndex;
 }
-Result dijsktra(int graphMap[][CITYSIZE], int dest,int vertices){
-  Result ret={.path={0},.elapsedTime=0};
-  int pathIndex=1,sum=0,lastValue=0,lastCity=0;
-  ret.path[0]=1;
-  for(int x=0;x!=dest-1;){
-    for(int y=0;y<vertices;y++){
-      if (graphMap[x][y]!=0 && !includes(ret.path,y+1)){
-        if(lastValue==0||graphMap[x][y]<lastValue){
-          lastValue=graphMap[x][y];
-          lastCity=y;
-        }
+
+Result dijkstra(int graph[CITY_SIZE][CITY_SIZE], int target,int vertices){
+  int distance[CITY_SIZE],previous[CITY_SIZE];
+  Result ret = {.target=target};
+  
+  for (int v=0;v<vertices;v++)
+    distance[v]=INFINITY,previous[v]=UNDEFINED,ret.path[v]=-1;
+  
+  distance[0]=0;
+  for(int q = 0;q<vertices;q++){
+    int u = minDistance(distance,previous,vertices);
+    previous[u]=DEFINED;
+    for(int v=0;v<vertices;v++){
+      if(!previous[v] && graph[u][v] && distance[u] != INFINITY 
+      && distance[u] + graph[u][v] < distance[v]){
+        distance[v] = graph[u][v] + distance[u];
+        ret.path[v]=u;
       }
     }
-    ret.path[pathIndex]=lastCity+1;
-    pathIndex++;
-    x=lastCity;
-    ret.elapsedTime+=lastValue;
-    lastValue^=lastValue;
+    if(u==target){
+      break;
+    }
   }
-  ret.pathSize=pathIndex;
+
+  ret.elapsedTime=distance[target];
   return ret;
 }
-void printArrayReverse(int arr[CITYSIZE],int len){
-  for(int x = len-1;x>=0;x--){
-    printf("%u ",arr[x]);
-  }
-  putchar('\n');
-}
+
 void printResult(Result result){
   if(result.elapsedTime>TIME_LIMIT){
-    printf("It will be %u minutes late. Travel time - %u - best way - ",
-      result.elapsedTime-TIME_LIMIT,result.elapsedTime);
-    printArrayReverse(result.path,result.pathSize);
+    printf("It will be %d minutes late. Travel time - ",result.elapsedTime-TIME_LIMIT);
   }else{
-    printf("Will not be late. Travel time - %u - best way - ",result.elapsedTime);
-    printArrayReverse(result.path,result.pathSize);
+    printf("Will not be late. Travel time - ");
   } 
+  printf("%d - best way - ",result.elapsedTime);
+  printPath(result.path,result.target);
 }
+
 int main(void){
-  int graphMap[CITYSIZE][CITYSIZE];
+  int graphMap[CITY_SIZE][CITY_SIZE];
   int c,e;
   int c1,c2,t;
   int d;
   while(1){
-    resetGraph(graphMap);
-    scanf("%u %u",&c,&e);
+    scanf("%d %d",&c,&e);
+    resetGraph(graphMap,c);
+    
     if (c==0||e==0)
       break;
+    
     for(int x=0;x<e;x++){
-      scanf("%u %u %u",&c1,&c2,&t);
+      scanf("%d %d %d",&c1,&c2,&t);
       Road new = {.c1=c1,.c2=c2,.time=t};
       fillGraph(graphMap,new);
     }
-    scanf("%u",&d);
-    printGraph(graphMap);
-    printResult(dijsktra(graphMap,d,c));
+    scanf("%d",&d);
+    //dijkstra(graphMap,d-1,c);
+    printResult(dijkstra(graphMap,d-1,c));
   }
   return EXIT_SUCCESS;
 }
