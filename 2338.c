@@ -5,6 +5,8 @@
 
 #define ALPHABET 26
 #define BUFFER 1000
+#define MAX_CHAR_BUFFER 500  //=.=.=.=.=->
+#define MAX_CODE_BUFFER 13+7 //j || q + .......
 #define isDot(x,y) (x=='.') ? true : -y
  
 typedef struct{
@@ -54,7 +56,7 @@ char returnLetter(const char code[]){
 }
 //{"=.=.=0..."} {"=.=.=...."}
 char *translate(const char morse[]){
-  static char save[BUFFER],ret[BUFFER];
+  static char save[MAX_CODE_BUFFER],ret[MAX_CHAR_BUFFER];
   size_t saveIndex = 0,dotCount=0,retIndex=0;
   for(size_t i = 0;morse[i]!='\0';i++){
     save[saveIndex] = morse[i];
@@ -81,7 +83,7 @@ char *translate(const char morse[]){
 int main(){
   
   size_t t;
-  scanf("%u",&t);getchar();
+  scanf("%u\n",&t);
   
   for(size_t i=0;i<t;i++){ 
     char morse[BUFFER];
