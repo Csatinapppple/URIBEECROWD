@@ -7,7 +7,7 @@
 -- e . . . . . e x . . . x
 
 --                     x1     x2     y1     y2
-calculateTrajectory :: Int -> Int -> Int -> Int -> 
+calculateTrajectory :: Int -> Int -> Int -> Int -> Double 
 
 main :: IO()
 main = do
